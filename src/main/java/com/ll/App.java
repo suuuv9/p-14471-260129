@@ -27,7 +27,7 @@ public class App {
             else if (cmd.equals("목록")) {
                 actionList();
             }
-            else if (cmd.startsWith("삭제")) {  // "삭제?id=숫자" 형태 처리
+            else if (cmd.startsWith("삭제")) {
                 actionDelete(cmd);
                 }
             }
@@ -37,32 +37,40 @@ public class App {
     //삭제 명령어 처리
     private void actionDelete(String cmd) {
 
-        String idStr = cmd.split("=")[1]; // "삭제?id=1"에서 1만 추출하기
+        String idStr = cmd.split("=")[1];
         int id = Integer.parseInt(idStr);
 
-        delete(id);
+        boolean rst = delete(id); //실제 삭제 시도
+
+        if(!rst) {
+            System.out.println("%d번 명언은 존재하지 않습니다.".formatted(id));
+            return;
+        }
         System.out.println("%d번 명언이 삭제되었습니다.".formatted(id));
     }
 
-    private void delete(int deleteTarget) {
+    // 못 찾으면 false, 찾으면 배열 당기고 true
+    private boolean delete(int deleteTarget) {
 
-        int foundIndex = -1; // 삭제하고 싶은 명언이 저장된 위치
+        int foundIndex = -1;
 
         for (int i = 0; i <= lastWiseSayingIndex; i++) {
             WiseSaying foundedWiseSaying = wiseSayings[i];
-            if (deleteTarget == foundedWiseSaying.id) { //꺼낸 id가 우리가 지우고 싶은 것과 맞는 지
+            if (deleteTarget == foundedWiseSaying.id) {
                 foundIndex = i;
-                break; // 찾았으면 반복 종료
+                break;
             }
         }
 
-        if (foundIndex == -1) return;
+        if(foundIndex == -1) return false;
 
         for (int i = foundIndex; i < lastWiseSayingIndex; i++) {
-            wiseSayings[i] = wiseSayings[i + 1]; //지우고 싶은 것을 [i + 1]로 덮어 씌우기
+            wiseSayings[i] = wiseSayings[i + 1];
         }
 
-        lastWiseSayingIndex--; //마지막 인덱스 줄여주기, 안 쓰니까!
+        lastWiseSayingIndex--;
+        return true;
+
     }
 
     //목록 출력하기
@@ -82,7 +90,7 @@ public class App {
         WiseSaying[] foundedWiseSayings = new WiseSaying[lastWiseSayingIndex + 1];
         int foundedWiseSayingIndex = -1;
 
-        for (int i = lastWiseSayingIndex; i >= 0; i--) { // 최신 등록이 먼저 보이도록 역순으로 담기
+        for (int i = lastWiseSayingIndex; i >= 0; i--) {
             WiseSaying foundedWiseSaying = wiseSayings[i];
             foundedWiseSayings[++foundedWiseSayingIndex] = foundedWiseSaying;
         }
