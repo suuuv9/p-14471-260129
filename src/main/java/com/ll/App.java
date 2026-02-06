@@ -1,18 +1,16 @@
 package com.ll;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
-public class App { //핵심 로직이 App 클래스가 가지게 됨.
+public class App {
 
     Scanner sc = new Scanner(System.in);
-    int lastId = 0; //가장 최근에 작성된 번호, 처음에는 입력된 번호가 없기 때문에 초기값 0으로 변경
+    int lastId = 0;
 
-    WiseSaying[] wiseSayings = new WiseSaying[10]; // 명언들을 저장할 배열,  최대 10개
-    int lastWiseSayingIndex = -1; // 마지막으로 저장된 인덱스, 아직 없으면 -1
+    WiseSaying[] wiseSayings = new WiseSaying[10];
+    int lastWiseSayingIndex = -1;
 
-    public void run() { //함수
+    public void run() {
 
         System.out.println("== 명언 앱 ==");
 
@@ -24,34 +22,75 @@ public class App { //핵심 로직이 App 클래스가 가지게 됨.
                 break;
             }
             else if (cmd.equals("등록")) {
-                actionWrite(); //등록이라고 입력되면 actionWrite 함수 부르기
+                actionWrite();
             }
             else if (cmd.equals("목록")) {
                 actionList();
             }
+            else if (cmd.startsWith("삭제")) {  // "삭제?id=숫자" 형태 처리
+                actionDelete(cmd);
+                }
+            }
         }
+
+
+    //삭제 명령어 처리
+    private void actionDelete(String cmd) {
+
+        String idStr = cmd.split("=")[1]; // "삭제?id=1"에서 1만 추출하기
+        int id = Integer.parseInt(idStr);
+
+        delete(id);
+        System.out.println("%d번 명언이 삭제되었습니다.".formatted(id));
     }
 
-    private void actionList() { //목록 함수
+    private void delete(int deleteTarget) {
+
+        int foundIndex = -1; // 삭제하고 싶은 명언이 저장된 위치
+
+        for (int i = 0; i <= lastWiseSayingIndex; i++) {
+            WiseSaying foundedWiseSaying = wiseSayings[i];
+            if (deleteTarget == foundedWiseSaying.id) { //꺼낸 id가 우리가 지우고 싶은 것과 맞는 지
+                foundIndex = i;
+                break; // 찾았으면 반복 종료
+            }
+        }
+
+        if (foundIndex == -1) return;
+
+        for (int i = foundIndex; i < lastWiseSayingIndex; i++) {
+            wiseSayings[i] = wiseSayings[i + 1]; //지우고 싶은 것을 [i + 1]로 덮어 씌우기
+        }
+
+        lastWiseSayingIndex--; //마지막 인덱스 줄여주기, 안 쓰니까!
+    }
+
+    //목록 출력하기
+    private void actionList() {
         System.out.println("번호 / 작가 / 명언");
         System.out.println("----------------------");
-        List<WiseSaying> wiseSayingList = findList(); // 최신 등록 가져오기
+        WiseSaying[] foundedWiseSayings = findList();
 
-        for(WiseSaying wiseSaying : wiseSayingList) { //for(a b : c) c의 개수 만큼 반복을 실행, 순차적으로 앞부터 꺼내서 실행
+        for (WiseSaying wiseSaying : foundedWiseSayings) {
             System.out.printf("%d / %s / %s\n", wiseSaying.id, wiseSaying.author, wiseSaying.content);
         }
     }
 
-    private List<WiseSaying> findList() {
+    private WiseSaying[] findList() {
 
-        List<WiseSaying> wiseSayingList = new ArrayList<>();
-        for (int i = lastWiseSayingIndex; i >= 0; i--) {
+        // 현재 저장된 개수만큼 새 배열 만들기
+        WiseSaying[] foundedWiseSayings = new WiseSaying[lastWiseSayingIndex + 1];
+        int foundedWiseSayingIndex = -1;
+
+        for (int i = lastWiseSayingIndex; i >= 0; i--) { // 최신 등록이 먼저 보이도록 역순으로 담기
             WiseSaying foundedWiseSaying = wiseSayings[i];
-            wiseSayingList.add(foundedWiseSaying);
+            foundedWiseSayings[++foundedWiseSayingIndex] = foundedWiseSaying;
         }
-        return wiseSayingList;
+
+        return foundedWiseSayings;
     }
 
+    // 명언 등록
     private void actionWrite() {
         System.out.print("명언 : ");
         String content = sc.nextLine();
@@ -62,13 +101,16 @@ public class App { //핵심 로직이 App 클래스가 가지게 됨.
         System.out.println(lastId + "번 명언이 등록되었습니다.");
     }
 
-    private void write(String content, String author) {
-        WiseSaying wiseSaying = new WiseSaying(); // 새 명언 객체 생성
 
-        wiseSaying.id = ++lastId; // id 등록할 때마다 하나씩 증가
+    //실제 저장 로직
+    private void write(String content, String author) {
+        WiseSaying wiseSaying = new WiseSaying();
+
+        //새 id 받기
+        wiseSaying.id = ++lastId;
         wiseSaying.content = content;
         wiseSaying.author = author;
 
-        wiseSayings[++lastWiseSayingIndex] = wiseSaying; // 다음 칸으로 이동 후 배열에 저장
+        wiseSayings[++lastWiseSayingIndex] = wiseSaying; //배열에 저장
     }
 }
